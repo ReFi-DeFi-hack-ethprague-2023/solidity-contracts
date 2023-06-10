@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {IFacilitator} from "./interfaces/IFacilitator.sol";
 import {IGhoToken} from "./interfaces/IGhoToken.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 // ReFi Facilitator contract that has the authority to mint GHO tokens based on messaged received from the Cosmos outpost
 // Acts as the FACILITATOR_MANAGER & BUCKET_MANAGER for the GHO token

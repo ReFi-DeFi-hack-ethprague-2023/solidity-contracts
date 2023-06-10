@@ -4,9 +4,9 @@ pragma solidity ^0.8.0;
 import {Script} from "forge-std/Script.sol";
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {ReFiFacilitator} from "../src/ReFiFacilitator.sol";
 import {IGhoToken} from "../src/interfaces/IGhoToken.sol";
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
 /**
  * @title FacilitatorSetup
