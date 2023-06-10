@@ -16,10 +16,10 @@ contract ReFiFacilitator {
     _;
   }
 
-  function onAxelarGmp(bytes calldata payload) external onlyBridge {
+  function onAxelarGmp(address recipient, uint256 amount) external onlyBridge {
     // decode payload here
-    address recipient = address(0); // any values rn
-    uint256 amount = 0;
+    //address recipient = address(0); // any values rn
+    //uint256 amount = 0;
 
     // Call gho token mint function
     IGhoToken(ghoToken).mint(recipient, amount);
