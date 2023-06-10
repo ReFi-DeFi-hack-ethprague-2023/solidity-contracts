@@ -16,7 +16,7 @@ const { chains, provider, webSocketProvider } = configureChains(
      * Uncomment this line to use Alchemy as your provider
      * @see https://wagmi.sh/react/providers/alchemy
      */
-    // alchemyProvider({ apiKey: import.meta.env.VITE_ALCHEMY_API_KEY! }),
+    alchemyProvider({ apiKey: import.meta.env.VITE_ALCHEMY_API_KEY! }),
     /**
      * Tells wagmi to use the default RPC URL for each chain
      * for some dapps the higher rate limits of Alchemy may be required
