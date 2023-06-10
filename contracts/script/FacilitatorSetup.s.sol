@@ -4,9 +4,9 @@ pragma solidity ^0.8.0;
 import {Script} from "forge-std/Script.sol";
 import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {ReFiFacilitator} from "../src/ReFiFacilitator.sol";
 import {IGhoToken} from "../src/interfaces/IGhoToken.sol";
+import {GhoToken} from "../src/GhoToken.sol";
 
 /**
  * @title FacilitatorSetup
@@ -19,33 +19,33 @@ contract FacilitatorSetup is Script, Test {
     // read DEPLOYER_PRIVATE_KEY from environment variables
     uint256 deployerPrivateKey = vm.envUint("FORGE_PRIVATE_KEY"); // this addrss is set as the admin in gho token
 
-    address ghoToken = 0x83eCdb25F2E678baEEEBC814D35Fa7528A676792;
     address aaveGovernance = address(0);
-    address bridge = 0x610A34ed4F715F62faa86BA5A20a7602A63bc98a; // Axelar bridge address
+    address bridge = address(0); // Axelar bridge address
+    address ghoAdmin = 0xe7Fc68CAea4BA48Ae4d80C132A6187727a2b35eC;
 
     uint128 initialMintLimit = 1_000_000;
 
     // start broadcast any transaction after this point will be submitted to chain
     vm.startBroadcast(deployerPrivateKey);
 
-    console.log("Address of Gho token: ", ghoToken);
-
-    // deploy ReFiFacilitator
-    console.log("Deploying Facilitator contract");
+    // deploy ReFiFacilitator & Gho token
+    console.log("Deploying Gho & Facilitator contract");
+    GhoToken ghoToken = new GhoToken(address(ghoAdmin));
     ReFiFacilitator facilitator = new ReFiFacilitator(
-      ghoToken,
+      address(ghoToken),
       aaveGovernance,
       bridge
     );
+    console.log("Gho token deployed at: ", address(ghoToken));
     console.log("Facilitator contract deployed at: ", address(facilitator));
 
     // grantRoles to the facilitator contract from admin address
     console.log("Granting right roles to the Facilitator contract");
-    AccessControl(ghoToken).grantRole(
+    ghoToken.grantRole(
       IGhoToken(ghoToken).FACILITATOR_MANAGER_ROLE(),
       address(facilitator)
     );
-    AccessControl(ghoToken).grantRole(
+    ghoToken.grantRole(
       IGhoToken(ghoToken).BUCKET_MANAGER_ROLE(),
       address(facilitator)
     );
