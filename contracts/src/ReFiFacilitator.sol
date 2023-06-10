@@ -46,6 +46,15 @@ contract ReFiFacilitator is Ownable, IFacilitator {
     emit AssetsBridged(recipient, amount);
   }
 
+  function burn(uint256 amount) external {
+    // Transfer the tokens from the user to the facilitator contract
+    IGhoToken(ghoToken).transferFrom(msg.sender, address(this), amount);
+    // Call the gho token contract to burn the tokens in this account
+    IGhoToken(ghoToken).burn(amount);
+
+    emit GHOBurned(amount); // Call bridge
+  }
+
   function updateMintLimit(uint128 newLimit) external onlyAaveGov {
     // Validate the new limit as this doesn't happen in the gho token contract
     require(newLimit > 0, "INVALID_MINT_LIMIT"); // ?? do we want to allow 0 limit ?

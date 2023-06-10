@@ -21,12 +21,27 @@ interface IFacilitator {
   event AssetsBridged(address indexed recipient, uint256 amount);
 
   /**
+   * @dev Emitted when the Facilitator has burned GHO from the Facilitator contract account, emitted to indicate that the bridge has been activated
+   * @param amount The amount of tokens burned
+   */
+  event GHOBurned(uint256 amount);
+
+  // -------------------------------------- Functions ----------------------------------------------------------- //
+
+  /**
    * @notice Mints new GHO tokens by calling the token contract, called upon bridge message
    * @dev Only the bridge can call this function
    * @param recipient The address to mint tokens to
    * @param amount The amount of tokens to mint
    */
   function onAxelarGmp(address recipient, uint256 amount) external;
+
+  /**
+   * @notice Transfer GHO tokens from the User to the Facilitator contract and burn them in the GHO contract
+   * @dev User calls this after approving the tokens
+   * @param amount The amount of tokens to burn
+   */
+  function burn(uint256 amount) external;
 
   /**
    * @notice Adds a new facilitator (itself as one) to the GHO token contract
