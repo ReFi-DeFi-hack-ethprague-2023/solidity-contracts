@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
-// import {IFacilitator} from "./interfaces/IFacilitator.sol";
+import {IFacilitator} from "./interfaces/IFacilitator.sol";
 import {IGhoToken} from "./interfaces/IGhoToken.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 // ReFi Facilitator contract that has the authority to mint GHO tokens based on messaged received from the Cosmos outpost
 // Acts as the FACILITATOR_MANAGER & BUCKET_MANAGER for the GHO token
-contract ReFiFacilitator is Ownable {
+contract ReFiFacilitator is Ownable, IFacilitator {
   address public ghoToken; // GhoToken contract address
   address public aaveGovernance; // Aave Governance contract address
   address public bridge; // Axelar bridge calls
@@ -19,7 +19,16 @@ contract ReFiFacilitator is Ownable {
   }
 
   modifier onlyBridge() {
-    require(msg.sender == bridge, "only bridge can call");
+    if (msg.sender != bridge) {
+      revert UnauthorizedCaller();
+    }
+    _;
+  }
+
+  modifier onlyAaveGov() {
+    if (msg.sender != aaveGovernance) {
+      revert UnauthorizedCaller();
+    }
     _;
   }
 
@@ -33,14 +42,11 @@ contract ReFiFacilitator is Ownable {
 
   function onAxelarGmp(address recipient, uint256 amount) external onlyBridge {
     IGhoToken(ghoToken).mint(recipient, amount);
+
+    emit AssetsBridged(recipient, amount);
   }
 
-  function updateMintLimit(uint128 newLimit) external {
-    // Check call by aave governance
-    require(
-      msg.sender == aaveGovernance,
-      "only aave governance allowed to set" // this could be a modifier TODO
-    );
+  function updateMintLimit(uint128 newLimit) external onlyAaveGov {
     // Validate the new limit as this doesn't happen in the gho token contract
     require(newLimit > 0, "INVALID_MINT_LIMIT"); // ?? do we want to allow 0 limit ?
 

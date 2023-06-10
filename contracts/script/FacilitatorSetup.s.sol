@@ -6,7 +6,7 @@ import {Test} from "forge-std/Test.sol";
 import {console} from "forge-std/console.sol";
 import {ReFiFacilitator} from "../src/ReFiFacilitator.sol";
 import {IGhoToken} from "../src/interfaces/IGhoToken.sol";
-import {GhoToken} from "../src/GhoToken.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
 /**
  * @title FacilitatorSetup
@@ -21,7 +21,7 @@ contract FacilitatorSetup is Script, Test {
 
     address ghoToken = 0x83eCdb25F2E678baEEEBC814D35Fa7528A676792;
     address aaveGovernance = address(0);
-    address bridge = address(0);
+    address bridge = 0x610A34ed4F715F62faa86BA5A20a7602A63bc98a; // Axelar bridge address
 
     uint128 initialMintLimit = 1_000_000;
 
@@ -41,11 +41,11 @@ contract FacilitatorSetup is Script, Test {
 
     // grantRoles to the facilitator contract from admin address
     console.log("Granting right roles to the Facilitator contract");
-    GhoToken(ghoToken).grantRole(
+    AccessControl(ghoToken).grantRole(
       IGhoToken(ghoToken).FACILITATOR_MANAGER_ROLE(),
       address(facilitator)
     );
-    GhoToken(ghoToken).grantRole(
+    AccessControl(ghoToken).grantRole(
       IGhoToken(ghoToken).BUCKET_MANAGER_ROLE(),
       address(facilitator)
     );
