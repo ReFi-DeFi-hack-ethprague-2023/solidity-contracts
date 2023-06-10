@@ -23,6 +23,14 @@ contract ReFiFacilitator is Ownable {
     _;
   }
 
+  function setBridgeAddress(address _bridge) external onlyOwner {
+    bridge = _bridge;
+  }
+
+  function setAaveGov(address _aaveGovernance) external onlyOwner {
+    aaveGovernance = _aaveGovernance;
+  }
+
   function onAxelarGmp(address recipient, uint256 amount) external onlyBridge {
     IGhoToken(ghoToken).mint(recipient, amount);
   }
