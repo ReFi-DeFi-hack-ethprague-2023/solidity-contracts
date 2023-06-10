@@ -23,19 +23,7 @@ contract ReFiFacilitator is Ownable {
     _;
   }
 
-<<<<<<< HEAD
   function onAxelarGmp(address recipient, uint256 amount) external onlyBridge {
-    // decode payload here
-    //address recipient = address(0); // any values rn
-    //uint256 amount = 0;
-=======
-  function setBridgeAddress(address _bridge) external onlyOwner {
-    bridge = _bridge;
-  }
->>>>>>> b3bb369 (update params, ownable, constructor)
-
-  function onAxelarGmp(address recipient, uint amount) external onlyBridge {
-    // Call gho token mint function
     IGhoToken(ghoToken).mint(recipient, amount);
   }
 
