@@ -6,9 +6,8 @@ libs = ['contracts/lib']
 solc = '0.8.15'
 
 remappings = [
-  '@eth-optimism/contracts-bedrock/=node_modules/@eth-optimism/contracts-bedrock',
-  '@openzeppelin/contracts/=node_modules/@openzeppelin/contracts/',
-  '@openzeppelin/contracts-upgradeable/=node_modules/@openzeppelin/contracts-upgradeable/',
+  '@openzeppelin/contracts/=contracts/lib/openzeppelin-contracts/contracts/',
+  '@openzeppelin/contracts-upgradeable/=contracts/lib/openzeppelin-contracts/contracts-upgradeable/',
   'forge-std/=contracts/lib/forge-std/src/',
 ]
 
