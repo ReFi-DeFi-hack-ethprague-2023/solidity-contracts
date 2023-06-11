@@ -1,210 +1,82 @@
-<div align="center">
-  <a href="https://ethglobal.com/events/lisbon"><img width="250" alt="scaling-ethereum" src="https://user-images.githubusercontent.com/35039927/236523442-f1dbfc7a-7acf-43a7-92ea-9851230e7d7b.png"></a>
-  <br />
-  <br />
-  ✦
-  <br />
-  <br />
-  <a href="https://optimism.io"><img alt="Optimism" src="https://raw.githubusercontent.com/ethereum-optimism/brand-kit/main/assets/svg/OPTIMISM-R.svg" width=320></a>
-  <br />
-  <h2><a href="https://optimism.io">Optimism</a> starterkit.</h2>
-  <br />
-</div>
+# LeverageReFi Solidity contracts 
 
-This is a [Optimism](https://github.com/ethereum-optimism) + [wagmi](https://wagmi.sh) + [Foundry](https://book.getfoundry.sh/) + [Rainbowkit](https://www.rainbowkit.com/) + [Vite](https://vitejs.dev/) project originally bootstrapped with [`create-wagmi`](https://github.com/wagmi-dev/wagmi/tree/main/packages/create-wagmi) built with ❤️ for hackers.
+## How we did it
+We deploy a mock Aave GHO token contract and implement our own facilitator for it that is allowed to mint GHO tokens. The facilitator is informed by the Axelar bridge (which connects to the Cosmos chain) to mint tokens and also, upon burning, would bridge that state change back. 
 
+In the Aave GHO token contract, the Facilitator contract is registered with its own mint limit and current mint level, which enables it to mint & burn GHO according to the IGhoToken spec.  
+### Mock Aave GHO token contract 
+Token contract from: https://github.com/ReFi-DeFi-hack-ethprague-2023/gho-refi-faciliator/blob/e9804c1526e47bd52a2f711ca15d758023a78d49/src/contracts/gho/GhoToken.sol
 
-## Who is this for?
+### Facilitator 
+Interface:
+```solidity
+  /**
+   * @notice Mints new GHO tokens by calling the token contract, called upon bridge message
+   * @dev Only the bridge can call this function
+   * @param recipient The address to mint tokens to
+   * @param amount The amount of tokens to mint
+   */
+  function onAxelarGmp(address recipient, uint256 amount) external;
 
-This starter is a great choice for any of the following groups:
+  /**
+   * @notice Transfer GHO tokens from the User to the Facilitator contract and burn them in the GHO contract
+   * @dev User calls this after approving the tokens
+   * @param amount The amount of tokens to burn
+   */
+  function burn(uint256 amount) external;
 
-- Hackers hacking on [Optimism](https://www.optimism.io/)
-- Hackers hacking on the [Attestation Station](https://community.optimism.io/docs/governance/attestation-station/)
-- Hackers interested in using [the most modern and robust web3 full stack development stack](https://twitter.com/gakonst/status/1630038261941796866)
+  /**
+   * @notice Adds a new facilitator (itself as one) to the GHO token contract
+   * @dev Only the admin can call this function; it acts in the FACILITATOR_MANAGER_ROLE for the GHO token contract
+   * @param mintLimit BucketCapacity to set for the Facilitator
+   * @param label The label to set for the facilitator
+   */
+  function addFaciliator(uint128 mintLimit, string calldata label) external;
 
-## Getting Started
-
-### Install Node
-
-[See here](https://nodejs.org/en/download/).
-Note that you need Node at a later version than 14.18.0, or 16 and above.
-These instructions were verified with Node 18.
-
-### Install Foundry
-
-You will need to install [Foundry](https://book.getfoundry.sh/getting-started/installation) to build your smart contracts.
-
-1. Run the following command:
-
-   ```sh
-   curl -L https://foundry.paradigm.xyz | bash
-   ```
-
-1. Source your environment as requested by Foundry.
-
-1. Run `foundryup`.
-
-</details>
-
-## Start the application
-
-<img width="450" alt="starter-app-screenshot" src="https://user-images.githubusercontent.com/389705/225778318-4e6fb8c0-c5d7-4aea-9fc2-2efd17ca435c.png">
-
-1. Clone/fork the optimism-starter repo
-
-   ```sh
-   git clone https://github.com/ethereum-optimism/optimism-starter.git
-   ```
-
-1. Install the necessary node packages:
-
-   ```sh
-   cd optimism-starter
-   npm install
-   ```
-
-1. Start the frontend with `npm run dev`
-
-   ```sh
-   npm run dev
-   ```
-
-   If you get errors during this step, you might need to [update your Foundry to the latest version](#install-foundry).
-
-1. Open [localhost:5173](http://localhost:5173) in your browser.
-
-   Once the webpage has loaded, changes made to files inside the `src/` directory (e.g. `src/App.tsx`) will automatically update the webpage.
-
-See below for general usage instructions or [FAQ](./FAQ.md) for answers to general questions such as:
-
-- [Where to get goerli eth]().
-- [How to deploy a public version of your app](./FAQ.md#how-do-i-deploy-this).
-
-## Generate ABIs & React Hooks
-
-This project comes with `@wagmi/cli` built-in, which means you can generate wagmi-compatible (type safe) ABIs & React Hooks straight from the command line.
-
-To generate ABIs & Hooks, follow the steps below.
-
-## Generate code
-
-To generate ABIs & React Hooks from your Foundry project (in `./contracts`), you can run:
-
-```sh
-npm run wagmi
+  /**
+   * @notice Update the BucketCapacity for the facilitator
+   * @dev Only the admin can call this function; it acts in the BUCKET_MANAGER_ROLE for the GHO token contract
+   * @param newLimit The new BucketCapacity to set
+   */
+  function updateMintLimit(uint128 newLimit) external;
 ```
+Full Interface here: https://github.com/ReFi-DeFi-hack-ethprague-2023/solidity-contracts/blob/main/contracts/src/interfaces/IFacilitator.sol
 
-This will use the wagmi config (`wagmi.config.ts`) to generate a `src/generated.ts` file which will include your ABIs & Hooks that you can start using in your project.
 
-[Here is an example](https://github.com/ethereum-optimism/optimism-starter/blob/main/src/components/Attestoooooor.tsx#L77) of Hooks from the generated file being used.
 
-## Deploying Contracts
+**Minting**
+Axelar bridge calls the minting function, passing in the recipient and amount of new tokens.
 
-To deploy your contracts to a network, you can use Foundry's [Forge](https://book.getfoundry.sh/forge/) – a command-line tool to tests, build, and deploy your smart contracts.
+**Burning**
+User approves the Facilitator in the GHO token contract, then calls ```burn(amount)``` to transfer the tokens from his account to the Facilitator and burn them there. Only the Facilitator is allowed burn. Then the state change is bridged back to Cosmos. 
+ 
 
-You can read a more in-depth guide on using Forge to deploy a smart contract [here](https://book.getfoundry.sh/forge/deploying), but we have included a simple script in the `package.json` to get you started.
+## Tests
+Run the tests using 
 
-Below are the steps to deploying a smart contract to Ethereum Mainnet using Forge:
+```forge test --fork-url $FOUNDRY_RPC_URL```
 
-## Set up environment
+Tests basic minting & burning as well as reverting on unauthorized calls. 
 
-### Get an Etherscan key
+## Deploy 
+Deploy and setup the Gho token & Facilitator contracts using 
 
-1. Register for [Etherscan on Optimism](https://explorer.optimism.io/register).
-   This account is different from your normal Etherscan account.
+``` forge script contracts/script/FacilitatorSetup.s.sol:FacilitatorSetup  --rpc-url $FOUNDRY_RPC_URL --private-key $FORGE_PRIVATE_KEY --broadcast --legacy ```
 
-1. Go to [the API keys page](https://explorer.optimism.io/myapikey) and click **Add** to create a new API key.
+Then call ```setBridgeAddress(bridge)``` on the Faciliator contract passing in the bridge address. 
 
-### Specify .env
+**Setup steps**
+1. deploy GhoToken gho & set an address we control to admin 
+2. call from admin 
+gho.grantRole(FACILITATOR_MANAGER_ROLE, FACIL), or whichever account we set 
+3. call from admin 
+gho.grantRole(BUCKET_MANAGER, FACIL), or whichever account we set 
+4. call from FACILITATOR_MANAGER_ROLE 
+gho.addFacilitator(FACIL, label, mint_limit) => FACIL.add_faciliator()
+5. now gho.mint() is only successful from our FACIL contract 
+6. to change mint_limit: call from BUCKET_MANAGER
+gho.setFacilitatorBucketCapacity(new_limit) => FACIL.update_mint_limit()
 
-You will first need to set up your `.env` to tell Forge where to deploy your contract.
 
-1. Copy `.env.example` to `.env`.
 
-   ```sh
-   cp .env.example .env
-   ```
-
-1. Edit your `.env` to specify the environment variables.
-
-   - `ETHERSCAN_API_KEY`: Your Etherscan API Key.
-
-   - `FORGE_RPC_URL`: The RPC URL of the network to which you deploy.
-     If you use [Alchemy](https://github.com/ethereum-optimism/optimism-tutorial/tree/main/ecosystem/alchemy), your URL will look like this: `https://opt-goerli.g.alchemy.com/v2/<Alchemy API Key>`
-
-   - `FORGE_PRIVATE_KEY`: The private key of the wallet you want to deploy from.
-
-## Deploy contract
-
-You can now deploy your contract!
-
-```sh
-npm run deploy
-```
-
-## Developing with Anvil (Optimism Mainnet Fork)
-
-Let's combine the above sections and use Anvil alongside our development environment to use our contracts (`./contracts`) against an Optimism fork.
-
-### Start dev server
-
-Run the command:
-
-```sh
-npm run dev:foundry
-```
-
-This will:
-
-- Start a vite dev server,
-- Start the `@wagmi/cli` in [**watch mode**](https://wagmi.sh/cli/commands/generate#options) to listen to changes in our contracts, and instantly generate code,
-- Start an Anvil instance (Goerli Optimism Fork) on an RPC URL.
-
-### Deploy our contract to Anvil
-
-Now that we have an Anvil instance up and running, let's deploy our smart contract to the Anvil network:
-
-```sh
-npm run deploy:anvil
-```
-
-## Start developing
-
-Now that your contract has been deployed to Anvil, you can start playing around with your contract straight from the web interface!
-
-Head to [localhost:5173](http://localhost:5173) in your browser, connect your wallet, and try increment a counter on the Foundry chain.   Use the generated code in `src/generated.ts` to do it and follow the [Attestooooor](https://github.com/ethereum-optimism/optimism-starter/blob/main/src/components/Attestoooooor.tsx) component as an example
-
-> Tip: If you import an Anvil private key into your browser wallet (MetaMask, Coinbase Wallet, etc) – you will have 10,000 ETH to play with 😎. The private key is found in the terminal under "Private Keys" when you start up an Anvil instance with `npm run dev:foundry`.
-
-## Attestation station
-
-This starterkit comes preloaded with tools for working with the attestation station!
-
-[@eth-optimism/atst](https://github.com/ethereum-optimism/optimism/blob/willc/alpha-final/packages/atst/docs/sdk.md) - Is a typescript sdk for easily interacting with the attestation in vanilla javascript and react. The react hooks for your convenience are also in this package at `src/generated.ts`
-
-Also included is a [CLI](https://github.com/ethereum-optimism/optimism/blob/willc/alpha-final/packages/atst/docs/cli.md) for interacting with the attestation. To get started run
-
-```bash
-npx atst --help
-```
-
-![preview](https://user-images.githubusercontent.com/35039927/222435290-0271bc85-1e62-4d0a-b539-084af1e22ded.gif)
-
-## Alternatives
-
-Looking to use burner wallets? Prefer hardhat? Prefer NEXT.js? Check out these amazing alternatives:
-
-- [create wagmi cli](https://wagmi.sh/cli/create-wagmi) - A flexible cli with many templates (this starterkit was started from vite-react-cli-foundry)
-- [scaffold-eth](https://github.com/scaffold-eth/se-2) - The new 2nd version of a popular NEXT.js based starter including hardhat, burner wallets, great documentation, and an active telegram for support
-- [Awesome wagmi](https://github.com/wagmi-dev/awesome-wagmi#templates) - Has other alternative examples
-- [Create Eth App](https://usedapp-docs.netlify.app/docs/Getting%20Started/Create%20Eth%20App) - Uses a wagmi alternative called useDapp that is used at OP Labs
-
-## Learn more
-
-To learn more about [Optimism](https://optimism.io), [Vite](https://vitejs.dev/), [Foundry](https://book.getfoundry.sh/), [Rainbow kit](https://www.rainbowkit.com/) or [wagmi](https://wagmi.sh), check out the following resources:
-
-- [Foundry Documentation](https://book.getfoundry.sh/) – learn more about the Foundry stack (Anvil, Forge, etc).
-- [wagmi Documentation](https://wagmi.sh) – learn about wagmi Hooks and API.
-- [wagmi Examples](https://wagmi.sh/examples/connect-wallet) – a suite of simple examples using wagmi.
-- [@wagmi/cli Documentation](https://wagmi.sh/cli) – learn more about the wagmi CLI.
-- [Vite Documentation](https://vitejs.dev/) – learn about Vite features and API.
+More information: https://hackmd.io/Nw4kEV8ATbutKhzVbGrcHA?view
